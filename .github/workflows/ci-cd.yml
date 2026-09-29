@@ -9,14 +9,13 @@ on:
       - main
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
-    
+
     permissions:
-     contents: read
-     packages: write
-    
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,8 +38,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - - name: Build and push Docker image
-          run: |
-            IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/ci-cd-demo
-            docker build -t $IMAGE_NAME:latest .
-            docker push $IMAGE_NAME:latest
+      - name: Build and push Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/ci-cd-demo
+          docker build -t $IMAGE_NAME:latest .
+          docker push $IMAGE_NAME:latest
