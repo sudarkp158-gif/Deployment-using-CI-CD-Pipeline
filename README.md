@@ -6,50 +6,121 @@ The project demonstrates how a software change can move from source control thro
 
 ## Project Objective
 
-The objective of this project is to demonstrate practical understanding of modern software delivery and CI/CD practices, including:
-
-- Source control with Git and GitHub
-- Continuous Integration (CI)
-- Automated testing
-- GitHub Actions workflows
-- Dependency management
-- Automated build and validation
-- Containerization with Docker
-- Deployment automation
-- Environment management
-- Security and quality checks
-- Deployment governance and rollback strategies
-
-## Current Implementation
-
-The current version implements the **Continuous Integration (CI)** portion of the pipeline.
-
-Whenever code is pushed to the `main` branch or a pull request targets `main`, GitHub Actions automatically:
-
-1. Checks out the source code
-2. Sets up the Python environment
-3. Installs project dependencies
-4. Runs automated tests
-5. Reports the pipeline result
-
-### Current CI Flow
+Build and demonstrate an end-to-end software delivery pipeline where a code change automatically moves through:
 
 ```text
-Developer
-    |
-    v
-GitHub Repository
-    |
-    v
+Code Change
+    ↓
+Git Commit
+    ↓
+Git Push
+    ↓
+GitHub
+    ↓
 GitHub Actions
-    |
-    +--> Checkout Code
-    |
-    +--> Setup Python
-    |
-    +--> Install Dependencies
-    |
-    +--> Run Automated Tests
-    |
-    v
-Success / Failure
+    ↓
+Automated Tests
+    ↓
+Docker Build
+    ↓
+GHCR
+    ↓
+Render Deploy Hook
+    ↓
+Render
+    ↓
+Container Deployment
+    ↓
+Gunicorn
+    ↓
+Flask
+    ↓
+Health Check
+
+```
+
+## Technology Stack
+
+| Area                 | Technology                       |
+| -------------------- | -------------------------------- |
+| Programming Language | Python                           |
+| Web Framework        | Flask                            |
+| Application Server   | Gunicorn                         |
+| Testing              | Pytest                           |
+| Containerization     | Docker                           |
+| Source Control       | Git / GitHub                     |
+| CI/CD                | GitHub Actions                   |
+| Container Registry   | GitHub Container Registry (GHCR) |
+| Cloud Deployment     | Render                           |
+| Secrets              | GitHub Actions Secrets           |
+
+
+## Key Program Risks and Mitigation Plan
+
+| Risk                           | Impact                            | Mitigation                                  |
+| ------------------------------ | --------------------------------- | ------------------------------------------- |
+| Automated tests fail           | Deployment blocked                | Fix failing tests before deployment         |
+| Docker build failure           | Release blocked                   | Validate Dockerfile and dependencies        |
+| Registry push failure          | Deployment cannot proceed         | Monitor GHCR authentication and permissions |
+| Deployment hook failure        | Cloud deployment not triggered    | Validate secret and deployment hook         |
+| Application fails health check | Deployment may not become healthy | Validate `/health` and application runtime  |
+| Dependency vulnerability       | Security exposure                 | Add dependency scanning                     |
+| Bad production deployment      | Customer impact                   | Introduce rollback strategy                 |
+| Configuration mismatch         | Runtime failure                   | Use environment-specific configuration      |
+
+
+### Architecture Summary
+
+                    ┌──────────────────┐
+                    │     Developer    │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │     GitHub       │
+                    │   Source Code    │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │ GitHub Actions   │
+                    │                  │
+                    │ • Test           │
+                    │ • Build          │
+                    │ • Package        │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │       Docker     │
+                    │   Build Image    │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │       GHCR       │
+                    │ Container Image  │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │     Render       │
+                    │ Cloud Deployment │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │    Gunicorn      │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │      Flask       │
+                    │   Application    │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │  /health =       │
+                    │    healthy       │
+                    └──────────────────┘
