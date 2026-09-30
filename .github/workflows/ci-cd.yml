@@ -44,14 +44,11 @@ jobs:
           docker build -t $IMAGE_NAME:latest .
           docker push $IMAGE_NAME:latest
 
-      - name: Check Render deploy hook secret
+      - name: Trigger Render deployment
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
-            echo "ERROR: Secret is empty or unavailable."
-            exit 1
-          fi
-
-          echo "SUCCESS: GitHub Actions can access the Render deploy hook secret."
+          echo "Triggering Render deployment..."
+          curl --fail --silent --show-error "$RENDER_DEPLOY_HOOK_URL"
+          echo "Render deployment triggered successfully."
